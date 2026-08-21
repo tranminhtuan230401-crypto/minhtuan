@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Điều khiển động cơ</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f2f2f2;
+            padding-top: 50px;
+        }
+
+        h1 {
+            margin-bottom: 40px;
+        }
+
+        button {
+            width: 250px;
+            height: 100px;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 15px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #forward {
+            background: #4CAF50;
+            color: white;
+        }
+
+        #reverse {
+            background: #2196F3;
+            color: white;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #status {
+            margin-top: 30px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <h1>ĐIỀU KHIỂN ĐỘNG CƠ</h1>
+
+    <button id="forward">
+        QUAY THUẬN
+    </button>
+
+    <button id="reverse">
+        QUAY NGHỊCH
+    </button>
+
+    <div id="status">
+        Đang dừng
+    </div>
+
+
+    <script>
+
+        // =========================
+        // ĐỊA CHỈ ESP32
+        // =========================
+
+        const ESP32_IP = "10.136.241.220";
+
+
+        // =========================
+        // GỬI LỆNH
+        // =========================
+
+        function sendCommand(command) {
+
+            fetch("http://" + ESP32_IP + "/" + command)
+                .then(response => response.text())
+                .then(data => {
+
+                    console.log(data);
+
+                })
+                .catch(error => {
+
+                    console.log("Lỗi:", error);
+
+                });
+        }
+
+
+        // =========================
+        // QUAY THUẬN
+        // =========================
+
+        const forwardButton =
+            document.getElementById("forward");
+
+        forwardButton.addEventListener("mousedown", function () {
+
+            sendCommand("forward");
+
+            document.getElementById("status").innerText =
+                "ĐANG QUAY THUẬN";
+
+        });
+
+
+        // =========================
+        // QUAY NGHỊCH
+        // =========================
+
+        const reverseButton =
+            document.getElementById("reverse");
+
+        reverseButton.addEventListener("mousedown", function () {
+
+            sendCommand("reverse");
+
+            document.getElementById("status").innerText =
+                "ĐANG QUAY NGHỊCH";
+
+        });
+
+
+        // =========================
+        // THẢ NÚT
+        // =========================
+
+        function stopMotor() {
+
+            sendCommand("stop");
+
+            document.getElementById("status").innerText =
+                "ĐANG DỪNG";
+        }
+
+
+        forwardButton.addEventListener("mouseup", stopMotor);
+        forwardButton.addEventListener("mouseleave", stopMotor);
+
+        reverseButton.addEventListener("mouseup", stopMotor);
+        reverseButton.addEventListener("mouseleave", stopMotor);
+
+
+        // =========================
+        // ĐIỆN THOẠI
+        // =========================
+
+        forwardButton.addEventListener("touchstart", function (e) {
+
+            e.preventDefault();
+
+            sendCommand("forward");
+
+            document.getElementById("status").innerText =
+                "ĐANG QUAY THUẬN";
+
+        });
+
+
+        reverseButton.addEventListener("touchstart", function (e) {
+
+            e.preventDefault();
+
+            sendCommand("reverse");
+
+            document.getElementById("status").innerText =
+                "ĐANG QUAY NGHỊCH";
+
+        });
+
+
+        forwardButton.addEventListener("touchend", function (e) {
+
+            e.preventDefault();
+
+            stopMotor();
+
+        });
+
+
+        reverseButton.addEventListener("touchend", function (e) {
+
+            e.preventDefault();
+
+            stopMotor();
+
+        });
+
+    </script>
+
+</body>
+
+</html>
