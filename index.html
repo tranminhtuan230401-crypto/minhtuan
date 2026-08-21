@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -29,6 +30,7 @@
             border: none;
             cursor: pointer;
             user-select: none;
+            touch-action: none;
         }
 
         #forward {
@@ -67,141 +69,234 @@
     </button>
 
     <div id="status">
-        Đang dừng
+        ĐANG DỪNG
     </div>
 
 
-    <script>
+    <script type="module">
 
-        // =========================
-        // ĐỊA CHỈ ESP32
-        // =========================
+        // ==============================
+        // FIREBASE
+        // ==============================
 
-        const ESP32_IP = "10.136.241.220";
+        import {
+            initializeApp
+        }
+        from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 
 
-        // =========================
+        import {
+            getDatabase,
+            ref,
+            set
+        }
+        from "https://www.gstatic.com/firebasejs/12.17.1/firebase-database.js";
+
+
+        // ==============================
+        // FIREBASE CONFIG
+        // ==============================
+
+        const firebaseConfig = {
+
+            apiKey:
+                "AIzaSyCXOm1P9DtqeN5lvXxg-lCir3eMhVB85TY",
+
+            authDomain:
+                "aaaaa-a62e1.firebaseapp.com",
+
+            databaseURL:
+                "https://aaaaa-a62e1-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+            projectId:
+                "aaaaa-a62e1",
+
+            storageBucket:
+                "aaaaa-a62e1.firebasestorage.app",
+
+            messagingSenderId:
+                "288410644557",
+
+            appId:
+                "1:288410644557:web:ee8336557db230cae5ac04",
+
+            measurementId:
+                "G-ZH69X78RYS"
+        };
+
+
+        // ==============================
+        // KHỞI TẠO FIREBASE
+        // ==============================
+
+        const app =
+            initializeApp(firebaseConfig);
+
+        const database =
+            getDatabase(app);
+
+
+        // ==============================
+        // VỊ TRÍ MOTOR
+        // ==============================
+
+        const motorCommand =
+            ref(database, "motor/command");
+
+
+        // ==============================
         // GỬI LỆNH
-        // =========================
+        // ==============================
 
         function sendCommand(command) {
 
-            fetch("http://" + ESP32_IP + "/" + command)
-                .then(response => response.text())
-                .then(data => {
+            set(motorCommand, command)
 
-                    console.log(data);
+                .then(() => {
+
+                    console.log(
+                        "Đã gửi:",
+                        command
+                    );
 
                 })
-                .catch(error => {
 
-                    console.log("Lỗi:", error);
+                .catch((error) => {
 
+                    console.error(
+                        "Lỗi Firebase:",
+                        error
+                    );
+
+                    document.getElementById(
+                        "status"
+                    ).innerText =
+                        "LỖI FIREBASE";
                 });
         }
 
 
-        // =========================
-        // QUAY THUẬN
-        // =========================
+        // ==============================
+        // HIỂN THỊ TRẠNG THÁI
+        // ==============================
 
-        const forwardButton =
-            document.getElementById("forward");
+        function status(text) {
 
-        forwardButton.addEventListener("mousedown", function () {
+            document.getElementById(
+                "status"
+            ).innerText = text;
 
-            sendCommand("forward");
-
-            document.getElementById("status").innerText =
-                "ĐANG QUAY THUẬN";
-
-        });
-
-
-        // =========================
-        // QUAY NGHỊCH
-        // =========================
-
-        const reverseButton =
-            document.getElementById("reverse");
-
-        reverseButton.addEventListener("mousedown", function () {
-
-            sendCommand("reverse");
-
-            document.getElementById("status").innerText =
-                "ĐANG QUAY NGHỊCH";
-
-        });
-
-
-        // =========================
-        // THẢ NÚT
-        // =========================
-
-        function stopMotor() {
-
-            sendCommand("stop");
-
-            document.getElementById("status").innerText =
-                "ĐANG DỪNG";
         }
 
 
-        forwardButton.addEventListener("mouseup", stopMotor);
-        forwardButton.addEventListener("mouseleave", stopMotor);
+        // ==============================
+        // QUAY THUẬN
+        // ==============================
 
-        reverseButton.addEventListener("mouseup", stopMotor);
-        reverseButton.addEventListener("mouseleave", stopMotor);
-
-
-        // =========================
-        // ĐIỆN THOẠI
-        // =========================
-
-        forwardButton.addEventListener("touchstart", function (e) {
-
-            e.preventDefault();
-
-            sendCommand("forward");
-
-            document.getElementById("status").innerText =
-                "ĐANG QUAY THUẬN";
-
-        });
+        const forward =
+            document.getElementById("forward");
 
 
-        reverseButton.addEventListener("touchstart", function (e) {
+        forward.addEventListener(
+            "pointerdown",
+            function (e) {
 
-            e.preventDefault();
+                e.preventDefault();
 
-            sendCommand("reverse");
+                sendCommand("forward");
 
-            document.getElementById("status").innerText =
-                "ĐANG QUAY NGHỊCH";
+                status("ĐANG QUAY THUẬN");
 
-        });
-
-
-        forwardButton.addEventListener("touchend", function (e) {
-
-            e.preventDefault();
-
-            stopMotor();
-
-        });
+            }
+        );
 
 
-        reverseButton.addEventListener("touchend", function (e) {
+        // ==============================
+        // QUAY NGHỊCH
+        // ==============================
 
-            e.preventDefault();
+        const reverse =
+            document.getElementById("reverse");
 
-            stopMotor();
 
-        });
+        reverse.addEventListener(
+            "pointerdown",
+            function (e) {
+
+                e.preventDefault();
+
+                sendCommand("reverse");
+
+                status("ĐANG QUAY NGHỊCH");
+
+            }
+        );
+
+
+        // ==============================
+        // DỪNG
+        // ==============================
+
+        function stopMotor(e) {
+
+            if (e) {
+                e.preventDefault();
+            }
+
+            sendCommand("stop");
+
+            status("ĐANG DỪNG");
+
+        }
+
+
+        // ==============================
+        // THẢ NÚT
+        // ==============================
+
+        forward.addEventListener(
+            "pointerup",
+            stopMotor
+        );
+
+        reverse.addEventListener(
+            "pointerup",
+            stopMotor
+        );
+
+
+        // ==============================
+        // RỜI KHỎI NÚT
+        // ==============================
+
+        forward.addEventListener(
+            "pointerleave",
+            stopMotor
+        );
+
+        reverse.addEventListener(
+            "pointerleave",
+            stopMotor
+        );
+
+
+        // ==============================
+        // HỦY TƯƠNG TÁC
+        // ==============================
+
+        forward.addEventListener(
+            "pointercancel",
+            stopMotor
+        );
+
+        reverse.addEventListener(
+            "pointercancel",
+            stopMotor
+        );
 
     </script>
 
 </body>
 
 </html>
+```
